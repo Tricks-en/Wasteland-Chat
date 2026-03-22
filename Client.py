@@ -7,20 +7,22 @@ history = []
 async def receive_task(websocket):
     try:
         async for message in websocket:
-            print(f"\n<<< {message}")
+          if f">>> {message.lstrip("<<<")}" not in history:
+            print(f"<<< {message}")
             history.append(f"<<< {message}")
-            # Optional: re-print prompt
-            print(">>> ", end="", flush=True)
     except websockets.exceptions.ConnectionClosed:
         print("\nConnection closed by server")
 
 async def send_task(websocket):
     while True:
+        os.system("cls")
+        for line in history:
+            print(line)
         message = await asyncio.to_thread(input, "")  # run blocking input in thread
         if message.lower() in ["quit", "exit", "q"]:
             break
         await websocket.send(message)
-        if message > 0:
+        if message != ">>> ":
           print(f">>> {message}")
           history.append(f">>> {message}")
 
@@ -28,7 +30,7 @@ async def chat():
     uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
         # Clear + show initial history
-        os.system("cls" if os.name == "nt" else "clear")
+        os.system("cls")
         for line in history:
             print(line)
 
